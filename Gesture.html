@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gesture Control</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Define color variables to match the desired palette (similar to previous design) */
+        :root {
+            --bg-dark: #2F323A; /* Dark background */
+            --block-bg: rgba(60, 65, 75, 0.7); /* Slightly lighter, transparent block background */
+            --block-border: rgba(255, 255, 255, 0.08); /* Subtle white border */
+            --text-light: #F0F0F0; /* Light text for main content */
+            --text-dark: #D0D0D0; /* Slightly darker text for less important info */
+            --text-highlight: #FFD700; /* Yellow highlight color */
+            --input-bg: rgba(0, 0, 0, 0.2); /* Dark, transparent input background */
+            --input-border: rgba(255, 255, 255, 0.1); /* Input border */
+            --button-main-bg: #4CAF50; /* Green for ON */
+            --button-danger-bg: #F44336; /* Red for OFF */
+            --button-reset-bg: #607D8B; /* Grey for general elements */
+            --shadow-soft: rgba(0, 0, 0, 0.3);
+            --shadow-strong: rgba(0, 0, 0, 0.5);
+            --shadow-glow: rgba(255, 215, 0, 0.2); /* Subtle yellow glow for blocks */
+            --header-color: #FFD700; /* Yellow for header text */
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif; /* Ensure Roboto is applied */
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center content horizontally */
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px; /* Space between major sections */
+            max-width: 900px; /* Max width for the content */
+            width: 100%;
+            margin: auto; /* Center the container */
+            flex-grow: 1;
+        }
+
+        /* --- Generic Block Styling (for the glass effect) --- */
+        .content-block {
+            background: var(--block-bg);
+            border-radius: 12px;
+            border: 1px solid var(--block-border);
+            box-shadow: 0 4px 15px var(--shadow-soft), 0 0 10px var(--shadow-glow) inset;
+            backdrop-filter: blur(8px);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            transition: box-shadow 0.3s ease-in-out, border-color 0.3s ease-in-out;
+        }
+
+        .content-block:hover {
+            box-shadow: 0 6px 20px var(--shadow-strong), 0 0 15px var(--shadow-glow) inset;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* --- Header & Navigation --- */
+        .header {
+            width: 100%;
+            display: flex;
+            flex-direction: column; /* Stack logo and nav vertically on top */
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px; /* Space below header */
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--header-color);
+            font-size: 2.5rem; /* Larger emoji */
+            font-weight: 700;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+            padding-bottom: 5px; /* Space below logo */
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 10px 0;
+            background: rgba(45, 48, 55, 0.8);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+            width: 100%; /* Make nav buttons take full width of container */
+            max-width: 800px; /* Constrain navigation bar width */
+        }
+
+        .nav-buttons a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            padding: 8px 12px;
+            border-radius: 5px;
+            transition: background-color 0.2s, color 0.2s, text-shadow 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav-buttons a:hover,
+        .nav-buttons a:focus {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--header-color);
+            text-shadow: 0 0 8px var(--shadow-glow);
+        }
+
+        .nav-buttons a.active-link {
+            background-color: rgba(255, 215, 0, 0.15);
+            color: var(--header-color);
+            font-weight: 700;
+            box-shadow: 0 0 8px var(--shadow-glow);
+        }
+
+        /* --- Main Content Styling --- */
+        h2 {
+            color: var(--header-color);
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+        }
+
+        /* Removed original p tag styling as the instruction paragraph is gone */
+        /* If you add other general p tags, you might need to re-add a p style */
+
+        #visuals {
+            display: flex;
+            flex-wrap: wrap; /* Allow sections to wrap on smaller screens */
+            gap: 20px;
+            justify-content: center; /* Center items within visuals */
+            flex-grow: 1; /* Allow visuals section to take remaining height */
+        }
+
+        #light-wrapper, #camera-section, #feedback-section { /* Added feedback-section */
+            flex: 1; /* Allow all sections to grow and take equal space */
+            min-width: 280px; /* Minimum width before wrapping */
+            padding: 20px;
+            background: var(--block-bg);
+            border-radius: 12px;
+            border: 1px solid var(--block-border);
+            box-shadow: 0 4px 15px var(--shadow-soft), 0 0 10px var(--shadow-glow) inset;
+            backdrop-filter: blur(8px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        #light {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, 0.3); /* Dark base for LED */
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.5); /* Stronger inner shadow when off */
+        }
+
+        .led-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #555; /* Default grey for off */
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5); /* Inner shadow for depth */
+            transition: background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+
+        .led-circle.active {
+            background-color: var(--button-main-bg); /* Green for ON */
+            /* Enhanced glow for active state */
+            box-shadow: 
+                0 0 30px 10px var(--button-main-bg), /* Stronger outer glow */
+                0 0 15px 5px rgba(255, 255, 255, 0.4) inset, /* Inner highlight */
+                inset 0 0 20px 5px rgba(255, 255, 255, 0.2); /* Soft inner glow */
+        }
+
+        #status {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--text-light);
+            margin-bottom: 10px;
+        }
+
+        #feedback-section { /* Styles for the new feedback div */
+            order: 1; /* Place feedback section at the top within #visuals for flex-wrap */
+            flex-basis: 100%; /* Make it take full width on its row */
+            margin-bottom: 20px; /* Space between feedback and other blocks */
+            min-height: 80px; /* Ensure visibility even with no content */
+            justify-content: center; /* Center content vertically */
+        }
+
+        #feedback {
+            background-color: rgba(255, 215, 0, 0.15);
+            color: var(--header-color);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 1rem; /* Slightly larger font */
+            font-weight: 500;
+            display: none; /* Hidden by default, shown by JS */
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+            text-align: center; /* Center the text within feedback */
+            width: 100%; /* Ensure it spans the width of its parent */
+            box-sizing: border-box; /* Include padding/border in width */
+        }
+
+        #camera-section h3 {
+            color: var(--header-color);
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+        }
+
+        #webcam {
+            display: block;
+            max-width: 100%; /* Ensure webcam fits its container */
+            height: auto;
+            border-radius: 8px;
+            border: 2px solid var(--block-border);
+            box-shadow: 0 0 15px var(--shadow-strong);
+            background-color: rgba(0,0,0,0.5); /* Placeholder if camera not active */
+        }
+
+        /* --- Responsive Adjustments --- */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            .header {
+                margin-bottom: 20px;
+            }
+            .logo-container {
+                font-size: 2rem;
+            }
+            .nav-buttons {
+                flex-direction: column;
+                gap: 8px;
+                padding: 8px 0;
+            }
+            .nav-buttons a {
+                padding: 8px 10px;
+                font-size: 0.9rem;
+                width: 100%; /* Make links full width */
+                text-align: center;
+            }
+            h2 {
+                font-size: 1.6rem;
+            }
+            /* Removed original p tag style for responsive */
+            #visuals {
+                flex-direction: column; /* Stack vertically on small screens */
+            }
+            #light-wrapper, #camera-section, #feedback-section { /* Added feedback-section */
+                min-width: unset; /* Remove min-width to allow full flexibility */
+                width: 100%;
+            }
+            #light {
+                width: 120px;
+                height: 120px;
+            }
+            .led-circle {
+                width: 80px;
+                height: 80px;
+            }
+            #webcam {
+                width: 100%;
+                height: auto;
+            }
+            #feedback-section {
+                margin-bottom: 15px; /* Adjust margin for smaller screens */
+            }
+        }
+    </style>
+    </head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo-container">
+                <img src="logo.png" alt="Logo" class="logo-img" style="height:38px;width:auto;"/>
+                <span class="wave-emoji">👊</span>
+            </div>
+            <div class="nav-buttons">
+              <a href="Home.html">Home Overview</a> 
+                <a href="Gesture.html" class="active-link">Gesture Control</a>
+                <a href="Voice.html">Voice Control Switch</a>
+                <a href="interview.html">Interview System</a> 
+            </div>
+        </div>
+
+        <h2>🖐 Gesture Controlled Light</h2>
+        <div id="visuals">
+            <div id="feedback-section" class="content-block"> <div id="feedback"></div>
+            </div>
+            <div id="light-wrapper" class="content-block">
+                <div id="light">
+                    <div class="led-circle" id="led"></div>
+                </div>
+                <div id="status">Status: Idle</div>
+            </div>
+            <div id="camera-section" class="content-block">
+                <h3>Camera</h3>
+                <video id="webcam" autoplay width="400" height="300"></video>
+            </div>
+        </div>
+    </div> <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+    <cript src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></cript>
+
+    <script>
+        const led = document.getElementById("led");
+        const status = document.getElementById("status");
+        const feedback = document.getElementById("feedback"); // This still refers to the inner div
+        const webcam = document.getElementById("webcam");
+
+        function showFeedback(message) {
+            feedback.innerText = message;
+            feedback.style.display = 'block';
+            setTimeout(() => {
+                feedback.style.display = 'none';
+            }, 3000);
+        }
+
+        function setLed(on) {
+            if (on) {
+                led.classList.add('active');
+            } else {
+                led.classList.remove('active');
+            }
+        }
+
+        const hands = new Hands({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+        });
+
+        hands.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.7,
+            minTrackingConfidence: 0.5
+        });
+
+        hands.onResults(onResults);
+
+        const camera = new Camera(webcam, {
+            onFrame: async () => {
+                await hands.send({ image: webcam });
+            },
+            width: 400,
+            height: 300
+        });
+        camera.start();
+
+        let openState = null; // Tracks current LED state to prevent redundant updates
+
+        function onResults(results) {
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const landmarks = results.multiHandLandmarks[0];
+                const thumbTip = landmarks[4];
+                const indexTip = landmarks[8];
+                const distance = Math.hypot(indexTip.x - thumbTip.x, indexTip.y - thumbTip.y);
+
+                // Define thresholds for open/closed hand
+                const openThreshold = 0.15;
+                const closedThreshold = 0.08; // Slightly smaller to ensure a tight fist
+
+                if (distance > openThreshold && openState !== 'open') {
+                    setLed(true);
+                    status.innerText = "Gesture: Open Hand (Light ON)";
+                    showFeedback("🖐 Light ON!");
+                    openState = 'open';
+                } else if (distance < closedThreshold && openState !== 'closed') {
+                    setLed(false);
+                    status.innerText = "Gesture: Closed Hand (Light OFF)";
+                    showFeedback("✊ Light OFF!");
+                    openState = 'closed';
+                }
+            } else {
+                // No hands detected, set status to idle
+                status.innerText = "Status: No Hand Detected";
+                // Optionally, turn off light if no hand is detected after some time
+                // if (openState !== null) { // Only change state if it was previously set
+                //     setTimeout(() => { // Small delay to avoid flickering
+                //         setLed(false);
+                //         openState = null;
+                //         showFeedback("No hand detected, light off.");
+                //     }, 1000); 
+                // }
+            }
+        }
+    </script>
+</body>
+</html>
